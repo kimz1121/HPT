@@ -30,7 +30,8 @@ class PolicyStem(nn.Module):
         self.tokens = nn.Parameter(
             torch.randn(1, token_num, stem_spec.modality_embed_dim) * INIT_CONST
         )
-
+        # INIT_CONST는 학습 초기에 learnable parameter가 너무 큰 영향을 주지 않도록 하는 도구인 듯.
+        
         self.cross_attention = CrossAttention(
             stem_spec.modality_embed_dim,
             heads=stem_spec.crossattn_heads,
@@ -77,6 +78,9 @@ class PolicyStem(nn.Module):
         >>> print(latent_tokens.shape)
         (32, 16, 128)
         """
+        # token과 feature에 cross attention을 적용하는 코드를 통해서 출력 피쳐의 차원을 항상 일정하게 유지시켜준다는 장점이 생긴다.
+        # 내부의 learnable token 의 차원으로 cross attention의 결과가 결정되기 때문임.
+
         # Initial reshape to adapt to token dimensions
         # (32, 3, 1, 49, 128)
         stem_feat = self(x)  

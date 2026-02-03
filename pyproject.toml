@@ -63,6 +63,6 @@ dependencies = [
 [tool.black]
 line-length = 120
 
-[tool.setuptools.packages]
-find = { include = ["src"] }
+[tool.setuptools.packages.find]
+include = ["hpt*"]
 

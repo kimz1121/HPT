@@ -1,0 +1,26 @@
+services:
+  trainer:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      args:
+        USER_UID: ${UID:-1000}
+        USER_GID: ${GID:-1000}
+        USERNAME: iw
+    image: hpt:dev
+    stdin_open: true
+    tty: true
+    container_name: hpt_dev
+    shm_size: '16gb'          # ← 여기
+
+    volumes:
+      - .:/hpt
+
+    working_dir: /hpt
+
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+              count: all

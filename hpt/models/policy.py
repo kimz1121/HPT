@@ -253,14 +253,21 @@ class Policy(nn.Module):
             use_raw_image = "image" in modality and "image" in self.encoders
             if use_raw_image:  # finetuning with encoders
                 data[modality] = self.encoders["image"](data[modality])
+                # 기본 config 설정에서 cfg.network.finetune_encoder값이 True 라면,
+                # self.encoders 에 resnet이 할당되도록 설정되어 있음
+                # 그러나 config의 finetune_encoder 기본값이 False 여서 
+                # self.encoders 에 image 인코더가 할당되지 않고, use_raw_image 값도 False가 된다.
 
             # positional embedding for observations
             data_shape = data[modality].shape
-            data_horizon = data_shape[1]
+            data_horizon = data_shape[1]# 데이터의 시간축 차원의 길이 추출
             horizon = data_horizon
-
+            
+            # random horizon masking
+            # 모델이 다양한 길이의 입력에 대해서 모두 대응할 수 있도록 설계 하기 위함인가?-> 맞는 듯
             if self.train_mode and self.stem_spec.random_horizon_masking and data_horizon > 1:
                 horizon = np.random.randint(1, data_horizon + 1)
+                # 최소 1, 최대 data_horizon 만큼의 horizon 길이는 보장하는 horizon 변수를 랜덤 샘플하도록 설계함.
                 data[modality] = data[modality][:, data_horizon - horizon : data_horizon]
 
             # data is N x T x M x ... x D where M is the # of instances for that sensor
@@ -287,6 +294,7 @@ class Policy(nn.Module):
         self.stem_tokens = self.stem_process(domain, data)
 
         # combine tokens
+        # Positional encoding 추가 등의 작업이 수행되는 함수임.
         self.trunk_tokens = self.preprocess_tokens(domain, self.stem_tokens)
 
         # trunk pass
@@ -507,6 +515,7 @@ class Policy(nn.Module):
         for modality in data_noimg.keys():
             update_history_buffer(modality, data_th[modality])
 
+            # language가 들어가는 경우는 별도 처리함.
             # language is the same for the whole trajectory
             if "language" in modality:
                 if "language" in self.modalities:
@@ -519,7 +528,7 @@ class Policy(nn.Module):
         # handle previous actions
         if "prev_actions" in self.history_buffer:
             data_th["prev_actions"] = torch.cat(self.history_buffer["prev_actions"], dim=1).float()
-
+            
         if self.openloop_traj_step != self.action_horizon - 1:
             # use previous predictions in open-loop execution
             self.openloop_traj_step += 1

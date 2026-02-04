@@ -255,6 +255,8 @@ class ResNet(PolicyStem):
         x = x.view(len(x), -1, 3, H, W)
         if self.num_of_copy > 1:
             # separate encoding for each view
+            # resnet stem 에서는 MLP stem에서와 같이 self.num_of_copy를 활용하나,
+            # 시간에 따른 모델 구분이 아닌, 카메라 개수에 따른 모델 구분을 위하여 사용된다.
             out = []
             iter_num = min(self.num_of_copy, x.shape[1])
             for idx in range(iter_num):

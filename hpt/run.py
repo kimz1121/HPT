@@ -64,7 +64,15 @@ def init_policy(cfg, dataset, domain, device):
 
     # add encoders into policy parameters. enable end-to-end training of the viison model for instance.
     if cfg.network.finetune_encoder:
+        # Policy 에 인코더를 포함시키는 경우
         utils.get_image_embeddings(np.zeros((320, 240, 3), dtype=np.uint8), cfg.dataset.image_encoder)
+        # cfg.dataset.image_encoder의 값은 config 파일에서 resnet으로 정해져 있다.
+        #   image_encoder: 'resnet' # which encoder to use as the pretrained model
+
+        # get_image_embeddings() 함수는 모델을 전역변수로 등록하는 역할을 동시에 수행한다.
+        # 위 함수가 실행된 '이후'에 global_language_model, global_vision_model 을 import하면 등록된 모델을 불러올 수 있다.
+        # 그 이전에 import 진행시 등록되기 전의 빈값의 변수가 불려와(copy) 진다.
+        # get_image_embeddings
         from hpt.utils.utils import global_language_model, global_vision_model
         policy.init_encoders("image", global_vision_model)
 

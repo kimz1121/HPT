@@ -14,9 +14,9 @@ services:
     shm_size: '16gb'          # ← 여기
 
     volumes:
-      - .:/hpt
+      - .:/home/$USERNAME/hpt
 
-    working_dir: /hpt
+    working_dir: /home/$USERNAME/hpt
 
     deploy:
       resources:

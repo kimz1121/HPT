@@ -29,23 +29,29 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python${PYTHON_VERSION}-dev python${PYTHON_VERSION}-venv \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Create virtual environment
+# Create virtual environment(deactivate venv configuration)
 RUN ln -s /usr/bin/python${PYTHON_VERSION} /usr/bin/python
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 RUN echo "source /opt/venv/bin/activate" >> /home/$USERNAME/.bashrc
 
+# Upgrade pip (venv 안에서 실행됨)
+RUN pip install --upgrade --no-cache-dir pip
+
 # Set workdir
-WORKDIR /hpt
+WORKDIR /home/$USERNAME/hpt
+
+# Copy only dependency definition
+COPY pyproject.toml README.md ./
+
+# Install dependencies(defined by pyproject.toml)
+RUN pip install --no-cache-dir .
 
 # Give permissions so user can write mounted files
 RUN chown -R $USERNAME:$USERNAME /hpt /opt/venv
 
 # Switch to user
 USER $USERNAME
-
-# Upgrade pip
-RUN pip install --upgrade --no-cache-dir pip
 
 # Set EGL as the rendering backend for MuJoCo
 ENV MUJOCO_GL="egl"

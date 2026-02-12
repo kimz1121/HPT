@@ -39,16 +39,17 @@ RUN echo "source /opt/venv/bin/activate" >> /home/$USERNAME/.bashrc
 RUN pip install --upgrade --no-cache-dir pip
 
 # Set workdir
-WORKDIR /home/$USERNAME/hpt
+ENV HOME=/home/$USERNAME
+WORKDIR $HOME/hpt
 
 # Copy only dependency definition
 COPY pyproject.toml README.md ./
 
 # Install dependencies(defined by pyproject.toml)
-RUN pip install --no-cache-dir .
+RUN pip install --no-cache-dir -e .
 
 # Give permissions so user can write mounted files
-RUN chown -R $USERNAME:$USERNAME /hpt /opt/venv
+RUN chown -R $USERNAME:$USERNAME $HOME/hpt /opt/venv
 
 # Switch to user
 USER $USERNAME
